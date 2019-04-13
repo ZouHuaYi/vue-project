@@ -4,7 +4,7 @@
             <div class="header-box">
                 <div class="header-name">
                     <div class="atver">
-                        <img src="../assets/default.png" alt=""/>
+                        <img :src="user.p_avatar" alt=""/>
                     </div>
                     <div class="title">
                         <span>推广人</span>
@@ -35,20 +35,28 @@
             <div class="package-four">
                 <div class="four-box">
                     <img class="f-img" :src="Userpackage.serviceImgUrl" alt=""/>
-                    <div class="pack" v-for="item in showHospitalList">
-                        <div class="p-tit">{{item.name}}</div>
-                        <div class="pack-list">
-                            <div class="pack-item" v-for="it in item.productMapList">
-                               <div class="pack-left">
-                                    {{it.title}}
-                               </div>
-                                <div class="pack-right">
-                                    &yen; <span class="yen">{{it.price}}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <a class="add-package-btn" @click="projectManagement" href="javascript:;">项目管理</a>
+                    <div class="f-box">
+                      <div class="pack" v-for="item in showHospitalList">
+                          <div class="p-tit">{{item.name}}</div>
+                          <div class="address" v-if="item.phone">
+                            <a :href="'tel:'+item.phone"><img src="../assets/phone_1.png" alt=""/> {{item.phone}}</a>
+                          </div>
+                          <div class="address" v-if="item.address">
+                            <a><img src="../assets/addree.png" alt=""/> {{item.address}}</a>
+                          </div>
+                          <div class="pack-list">
+                              <div class="pack-item" v-for="it in item.productMapList">
+                                 <div class="pack-left">
+                                      {{it.title}}
+                                 </div>
+                                  <div class="pack-right">
+                                      &yen; <span class="yen">{{it.price}}</span>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                      <a class="add-package-btn" @click="projectManagement" href="javascript:;">项目管理</a>
+                  </div>
                 </div>
             </div>
         </div>
@@ -243,9 +251,6 @@
                   this.projectSelectId = this.projectSelectId.concat(this.projectSelectArr[i])
                 }
               }
-
-
-
             },
             comfigProject(){
               if(this.projectSelectId!=0){
@@ -436,6 +441,7 @@
              }
           }
         }
+
         .edit-alter{
             position: absolute;
             width: 86%;
@@ -548,6 +554,16 @@
         background-color: #14cebc;
         padding-top: 60px;
     }
+    .address{
+      width:100%;
+      padding: 5px 0;
+      color: #666666;
+      font-size: 26px;
+      img{
+        width: 24px;
+        height:24px;
+      }
+    }
     .qrcode-header{
         position: relative;
         width: 86%;
@@ -640,6 +656,10 @@
                 .f-img{
                     display: block;
                     width: 100%;
+                }
+                .f-box{
+                  width: 100%;
+                  padding-top: 20px;
                 }
                 .add-package-btn{
                     width: 240px;

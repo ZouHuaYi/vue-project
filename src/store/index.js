@@ -57,6 +57,7 @@ const store = new Vuex.Store({
     actions: {
         // 获取父级的数据
         getShareUserData({ commit, state }, data) {
+            Vue.layer.closeAll();
             let formData;
             if (data) {
                 formData = {
@@ -75,13 +76,14 @@ const store = new Vuex.Store({
                 if (res.messageCode == 900) {
                     commit('saveShareUserData', res.data)
                 } else {
-                    let msg = result.message ? result.message : "网络开小差啦！！！";
+                    const msg = result.message ? res.message : "网络开小差啦！！！";
                     Vue.layer.msg(msg);
                 }
             })
         },
         // 提前预判团队的时候
         prejudgeInTeam({ commit, state, dispatch }, payload) {           //token: this.token, hospitalId: hospitalId
+          Vue.layer.closeAll();
             request('/rest/user/getUser', { ...payload }).then(res => {
                 if (res.messageCode == 900 || res.messageCode == 1402) {
                     // 判断是否在团队中
@@ -143,7 +145,7 @@ const store = new Vuex.Store({
                         commit('changeRouteState', 2)
                     }
                 } else {
-                    let msg = res.message ? res.message : "找不到该用户";
+                    const msg = res.message ? res.message : "找不到该用户";
                     Vue.layer.msg(msg);
                 }
             })
@@ -177,7 +179,7 @@ const store = new Vuex.Store({
               commit('saveJoinUserData',res.data);
               commit('join/saveNowUser',res.data);
             }else {
-              const msg = tphone.message ? tphone.message : "该用户不存在";
+              const msg = res.message ? res.message : "该用户不存在";
               Vue.layer.msg(msg);
             }
           })
@@ -190,7 +192,7 @@ const store = new Vuex.Store({
               if(res.messageCode==900){
                 dispatch('shareWxchat',res.data);
               }else {
-                const msg = tphone.message ? tphone.message : "微信签名失败";
+                const msg = res.message ? res.message : "微信签名失败";
                 Vue.layer.msg(msg);
               }
             })

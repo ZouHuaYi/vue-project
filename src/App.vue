@@ -37,6 +37,7 @@ export default {
     ]),
   },
   created(){
+
     if(this.browerStatus==='isApp'){
       // app里面打开的时候
       const token = getQueryString('token');

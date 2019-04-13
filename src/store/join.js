@@ -29,8 +29,10 @@ const moduleJoin = {
     actions: {
         // 提交验证码 登录
         postLoginRegister({ commit, dispatch, rootState }, payload) { // phone: phone,code: vcode
+          Vue.layer.closeAll();
             request('/rest/user/login_by_code', { ...payload }).then(res => {
                 Vue.loading.hide();
+                Vue.layer.closeAll();
                 if (res.messageCode == 129) {
                     // 第一次注册的时候 需要设置密码
                     commit('changeLayerPassword',true);
@@ -43,7 +45,7 @@ const moduleJoin = {
                     commit('saveToken',res.data.token,{root:true});
                     dispatch('bindUnicodeFun',{id:res.data.id});
                 } else {
-                    let msg = result.message ? result.message : "验证码错误";
+                    const msg = res.message ? res.message : "验证码错误";
                     Vue.layer.msg(msg);
                 }
             })
@@ -67,7 +69,7 @@ const moduleJoin = {
                 // commit('changeRouteState',3,{root:true});
                 dispatch('bindParent');
               }else {
-                const msg = passw.message ? passw.message : "密码设置失败！";
+                const msg = res.message ? res.message : "密码设置失败！";
                 Vue.layer.msg(msg);
               }
             })

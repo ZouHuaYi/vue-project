@@ -27,6 +27,7 @@ const moduleQcode = {
     actions: {
       getPackageTypeData({commit,rootState}){
         request('/rest/distribution/main/push/package',{token:rootState.token}).then( res => {
+          Vue.layer.closeAll();
           if(res.messageCode==900){
             commit('savePackageType',{
               locking: res.data.locking,
@@ -37,7 +38,7 @@ const moduleQcode = {
             commit('saveShowHospitalList',res.data.showHospitalList);
             commit('savePackageMapList',res.data.packageMapList);
           }else {
-            const msg = result.message ? result.message : "无法获取套餐信息";
+            const msg = res.message ? res.message : "无法获取套餐信息";
             Vue.layer.msg(msg);
           }
         })
