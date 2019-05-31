@@ -3,7 +3,7 @@ import Vuex from 'vuex';
 import moduleJoin from './join';
 import moduleQcode from './qcode';
 import request from '@/utils/request';
-import { getQueryString,clearPath } from '@/utils/utils';
+import { getQueryString,clearPath,showPosition } from '@/utils/utils';
 import wx from "weixin-js-sdk";
 
 
@@ -22,12 +22,14 @@ const store = new Vuex.Store({
         joinUserData:{},
         routeStatus: -1,    // 0：代表用户有推广二维码权限  1：用户没有登录没有注册 2：用户没有未购买套餐的时候 3：第一次注册的用户
         test: false,
+        location:getQueryString('location')?getQueryString('location'):'',
         token:getQueryString('token')?getQueryString('token'):'',
         scan: getQueryString('scan') ? true : false,
         pPhone: getQueryString('pPhone') ? getQueryString('pPhone') : '',
         pId: getQueryString('pId') ? parseInt(getQueryString('pId')) : '',
         hospitalId: getQueryString('hospitalId') ? parseInt(getQueryString('hospitalId')) : "",
         unionId:null,
+        areaJion:null,
     },
     mutations: {
         getBrower(state) {
@@ -52,6 +54,9 @@ const store = new Vuex.Store({
         },
         saveUnionId(state,data){
           state.unionId = data;
+        },
+        saveLocaltion(state,data){
+          state.areaJion = data
         },
     },
     actions: {
@@ -256,7 +261,85 @@ const store = new Vuex.Store({
                 }
               });
             });
-        }
+        },
+        // 获取地理微信
+        getPreLocations({dispatch}){
+          request("/rest/user/getSign",{
+              url:encodeURIComponent(window.location.href)
+            }).then( res=>{
+              if(res.messageCode==900){
+                dispatch('getCityArea',res.data);
+            }else {
+              const msg = res.message ? res.message : "微信签名失败";
+              commit('saveLocaltion',{});
+              Vue.layer.msg(msg);
+            }
+          })
+        },
+        // 获取地理位置的微信api
+        getCityArea({commit,dispatch,state},data){
+          const {appId,timestamp,nonceStr,signature} = data;
+          wx.config({
+            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId: appId, // 必填，公众号的唯一标识
+            timestamp: timestamp, // 必填，生成签名的时间戳
+            nonceStr: nonceStr, // 必填，生成签名的随机串
+            signature: signature, // 必填，签名，见附录1
+            jsApiList: [
+              "getLocation"                   // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+            ]
+          });
+            wx.ready(()=>{
+              wx.checkJsApi({
+                jsApiList: [
+                  'getLocation'
+                ],
+                success: function (res) {
+                  if (res.checkResult.getLocation == false) {
+                    Vue.layer.msg('你的微信版本太低，不支持微信JS接口，请升级到最新的微信版本！');
+                    commit('saveLocaltion',{});
+                    return;
+                  }
+                }
+              });
+              wx.error(function(res){
+                Vue.layer.msg("接口调取失败");
+                commit('saveLocaltion',{});
+              });
+              wx.getLocation({
+                success: function (res) {
+                  dispatch('geographyArea',res);
+                },
+                cancel: function (res) {
+                  Vue.layer.msg('用户拒绝授权获取地理位置');
+                  commit('saveLocaltion',{});
+                }
+              });
+          })
+        },
+        // 获取地理位置的接口
+        geographyArea({commit},data){
+            let str = '';
+            if(typeof data==='string'){
+              str = data;
+            }else {
+              str = data.latitude+','+data.longitude;
+            }
+            Vue.jsonp(`http://apis.map.qq.com/ws/geocoder/v1?key=I3LBZ-3SE6U-5E4V4-4RK4L-YYMZ2-RMFBZ&location=${str}&get_poi=0&poi_options=address_format=short`,{
+                callbackName: 'QQmap',
+                output:'jsonp',
+              }).then(json=>{
+                if(json.status==0&&json.result){
+                  commit('saveLocaltion',json.result.address_component);
+                }else{
+                  Vue.layer.msg('无法获取地理位置');
+                  commit('saveLocaltion',{});
+                }
+            }).catch(err=>{
+                Vue.layer.msg('无法获取地理位置啦!!!');
+                commit('saveLocaltion',{});
+            })
+        },
     }
 })
 

@@ -7,7 +7,7 @@
                         <img :src="user.p_avatar" alt=""/>
                     </div>
                     <div class="title">
-                        <span>推广人</span>
+                        <span>美丽分享</span>
                         <span>{{user.p_name}}</span>
                     </div>
                 </div>
@@ -29,9 +29,12 @@
                 </div>
             </div>
         </div>
-        <div class="package-box" v-if="packageMapList.length>0">
-          <div>
-            <img class="package-img" :src="packageMapList[newShowPackageTypeIndex]?packageMapList[newShowPackageTypeIndex].description[0]:defaultBgkImg" alt=""></div>
+        <div class="package-box" v-if="packageMapList.length>0"
+             style="margin-top: 20px">
+            <div style="min-height: 180px">
+              <img  class="package-img"
+                    :src="packageMapList[newShowPackageTypeIndex]?packageMapList[newShowPackageTypeIndex].description[0]:defaultBgkImg" alt="" />
+              </div>
             <div class="package-four">
                 <div class="four-box">
                     <img class="f-img" :src="Userpackage.serviceImgUrl" alt=""/>
@@ -39,10 +42,12 @@
                       <div class="pack" v-for="item in showHospitalList">
                           <div class="p-tit">{{item.name}}</div>
                           <div class="address" v-if="item.phone">
-                            <a :href="'tel:'+item.phone"><img src="../assets/phone_1.png" alt=""/> {{item.phone}}</a>
+                            <a :href="'tel:'+item.phone"><img
+                              :src="phone_one" alt=""/> {{item.phone}}</a>
                           </div>
                           <div class="address" v-if="item.address">
-                            <a><img src="../assets/addree.png" alt=""/> {{item.address}}</a>
+                            <a><img :src="addree" alt=""/>
+                              {{item.address}}</a>
                           </div>
                           <div class="pack-list">
                               <div class="pack-item" v-for="it in item.productMapList">
@@ -103,7 +108,6 @@
                       <a class="edit-finsh" @click="comfigProject" href="javascript:;">完成</a>
                     </div>
                 </div>
-
             </div>
             <div class="input-alter" v-if="inuptShow">
               <div class="input-title">新建项目</div>
@@ -130,6 +134,8 @@
     import {getQueryString,clearPath} from '@/utils/utils';
     import defaultBgkImg from '../assets/pag.png';
     import request from '@/utils/request';
+    import addree from '../assets/addree.png';
+    import phone_one from '../assets/phone_1.png'
 
 
     export default{
@@ -144,6 +150,9 @@
               showHospitalList: state=>state.qcode.showHospitalList,
               packageMapList: state=>state.qcode.packageMapList,
               token: state=>state.token,
+              newShowPackageTypeIndex: state=>state.qcode.newDefaultIndex,
+              areaJion: state=>state.areaJion,
+              browerStatus: state => state.browerStatus,
           })
         },
         data(){
@@ -154,18 +163,21 @@
                 inuptShow:false,
                 url: '',
                 logoSrc:logo,
-                newShowPackageTypeIndex:0,
                 defaultBgkImg:defaultBgkImg,
                 projectTitle:'',
                 projectPrice:'',
                 projectSelectArr:{},
                 projectSelectId:[],
+                addree:addree,
+                phone_one:phone_one,
             }
         },
         methods:{
             ...mapActions([
                 'qcode/getPackageTypeData',
                 'qcode/addPackageList',
+                'qcode/selectServerData',
+                'qcode/getHospitalData'
             ]),
             selectPackageShow(){
                 this.makShow = true;
@@ -180,7 +192,7 @@
                 this.inuptShow = false;
             },
             selectPackageType(val){
-              this.newShowPackageTypeIndex = val;
+              this.$store.commit('qcode/saveDefaultIndex',val);
               this.selectPackageHidden();
             },
             projectManagement(){
@@ -210,7 +222,6 @@
                   this.$layer.msg('商品价格不能为空');
                   return;
                 }
-
                 request('/rest/business/relateuser/service/product/addOrUpdate',{
                   token:token,
                   id:'',
@@ -225,7 +236,7 @@
                     this.inuptShow = false;
                     this.projectTitle = '';
                     this.projectPrice = '';
-                    this['qcode/getPackageTypeData'](getQueryString('pId'));
+                    this['qcode/getHospitalData']();
                 })
             },
             selectProjectHandle(pId,id){
@@ -260,7 +271,7 @@
                   token:this.token,
                 }).then(res=>{
                   if(res.messageCode==900){
-                    this['qcode/getPackageTypeData'](getQueryString('pId'));
+                    this['qcode/selectServerData']();
                   }else {
                     this.$layer.msg(res.message?res.message:'项目管理失败');
                   }
@@ -274,7 +285,7 @@
                 status:status,
               }).then(res=>{
                 if(res.messageCode==900){
-                  this['qcode/getPackageTypeData'](getQueryString('pId'));
+                  this['qcode/selectServerData']();
                   this.projectSelectArr={};
                   this.projectSelectId=[];
                 }else {
@@ -287,8 +298,21 @@
                 this.inuptShow = false;
              },
         },
+
         created(){
-            this['qcode/getPackageTypeData']();
+            console.log(this.areaJion);
+            if(this.areaJion===null){
+              this.$store.watch((state)=>{
+                return state.areaJion
+              },()=>{
+                console.log(this.areaJion);
+                this['qcode/getPackageTypeData']();
+              });
+            }else {
+              this['qcode/getPackageTypeData']();
+            }
+            this['qcode/selectServerData']();
+            this['qcode/getHospitalData']();
             document.getElementsByTagName("title")[0].innerHTML = "推广二维码";
             this.url = clearPath();
         },
@@ -342,6 +366,7 @@
             height: 70%;
             bottom: 0;
             background: #ffffff;
+            overflow-y: auto;
             .alter-tit{
                 width: 100%;
                 text-align: center;
@@ -636,7 +661,7 @@
     .package-box{
         position: relative;
         width: 100%;
-        margin-top:-200px;
+        //margin-top:-200px;
         .package-img{
             display: block;
             width: 100%;
@@ -644,8 +669,9 @@
         .package-four{
             width: 100%;
             background-color: #d5fffb;
-            background-image:url("../assets/four_bgk.png");
+            background-image:url("./../assets/four_bgk.png");
             background-size:100%;
+            padding-top: 40px;
             .four-box{
                 width: 80%;
                 margin: 0 auto;

@@ -10,7 +10,7 @@ import loading from "./components/loading.vue";
 import IndexQrcode from "./views/IndexQrcode";
 import UserLogin from './views/UserLogin'
 import {mapState,mapActions} from "vuex";
-import {getQueryString} from '@/utils/utils'
+import {getQueryString,showPosition} from '@/utils/utils';
 
 export default {
   name: "app",
@@ -24,6 +24,7 @@ export default {
         browerStatus: state => state.browerStatus,
         scan: state => state.scan,
         hospitalId:state=>state.hospitalId,
+        location:state=>state.location
       }),
   },
   components: {
@@ -34,13 +35,20 @@ export default {
     ...mapActions([
       'prejudgeInTeam',
       'getUnionId',
+      'getPreLocations',
+      'geographyArea',
     ]),
   },
   created(){
-
     if(this.browerStatus==='isApp'){
       // app里面打开的时候
       const token = getQueryString('token');
+      console.log(this.location);
+      if(this.location){
+        this['geographyArea'](this.location);
+      }else {
+        this.$store.commit('saveLocaltion',{});
+      }
       if(token){
         // 有token 用户登陆的时候 判断用户的身份。
         const formData={
@@ -48,10 +56,9 @@ export default {
           token:token
         };
         this['prejudgeInTeam'](formData);
-        return;
       }else {
         this.$store.commit('changeRouteState',1);
-      }
+      };
       // 没有登陆的时候
     }else if(this.browerStatus==='isWechat'){
       // 微信里面打开的时候
@@ -59,6 +66,8 @@ export default {
       if(code){
         // 获取数据
         this['getUnionId'](code);
+        this['getPreLocations']();
+
       }else{
         // 跳转获取uincode id 值
         const appid = 'wx594f420067cba83d';
@@ -68,6 +77,12 @@ export default {
       }
     }else{
       // 浏览器打开的时候
+      showPosition( (loacltion)=> {
+
+        this['geographyArea'](loacltion);
+      },()=>{
+        this.$store.commit('saveLocaltion',{});
+      });
       this.$store.commit('changeRouteState',1);
     }
   }

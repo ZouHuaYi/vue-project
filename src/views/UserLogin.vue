@@ -8,7 +8,7 @@
               <img :src="user.p_avatar" ref="avatar" alt>
             </div>
             <div class="text">
-              <span class="tit">推广人</span>
+              <span class="tit">美丽分享</span>
               <h5>{{user.p_name}}</h5>
             </div>
           </div>

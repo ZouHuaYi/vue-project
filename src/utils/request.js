@@ -3,7 +3,7 @@ import Vue from 'vue';
 import { isObject } from './utils'
 
 // const root = "http://admin.topmei3mei.com"http://test.topmei3mei.com; 192.168.2.236:8080/msm
-const root = process.env.NODE_ENV == 'production' ? "" : "http://test.topmei3mei.com";
+const root = process.env.NODE_ENV == 'production' ? "" : "http://admin.topmei3mei.com";
 
 
 let instance = axios.create({

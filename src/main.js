@@ -6,7 +6,7 @@ import store from './store'
 
 Vue.config.productionTip = false;
 import "lib-flexible";
-
+import VueJsonp from 'vue-jsonp';
 import 'babel-polyfill'
 import Es6Promise from 'es6-promise'
 Es6Promise.polyfill()
@@ -18,6 +18,7 @@ if (window.location.href.indexOf('m3m.fengwoo.cn') > -1) {
 
 Vue.use(loading);
 Vue.use(layer);
+Vue.use(VueJsonp);
 
 // 提示框文字居中的样式封装
 Vue.prototype.$layerCenterMsg = function (content, time = 2) {
